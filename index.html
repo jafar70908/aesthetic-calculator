@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aesthetic Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="theme-midnight">
+  <!-- Interactive Animated Background Canvas -->
+  <canvas id="bgCanvas" class="bg-canvas"></canvas>
+
+  <!-- Ambient light blobs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Interactive Smooth Mouse Follower Light -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <!-- Floating Particles & Key Effect Container -->
+  <div id="fxOverlay" class="fx-overlay"></div>
+
+  <main class="calculator-wrapper">
+    <div class="calculator-card" id="calcCard">
+      
+      <!-- Top Navigation & Controls -->
+      <header class="calc-header">
+        <div class="header-group">
+          <!-- Theme Button with animated icon -->
+          <button id="themePickerBtn" class="pill-btn interactive-icon-btn" title="Choose aesthetic theme" aria-label="Theme Selector">
+            <span class="btn-icon theme-spin-icon" id="themeIconSpan">🎨</span>
+            <span class="btn-label" id="currentThemeName">Midnight</span>
+            <span class="icon-click-wave"></span>
+          </button>
+
+          <!-- Sound Button with animated waves -->
+          <button id="soundToggleBtn" class="icon-btn interactive-icon-btn active" title="Toggle Sound Feedback" aria-label="Toggle Sound">
+            <span id="soundIcon" class="icon-content">🔊</span>
+            <span class="icon-click-wave"></span>
+          </button>
+        </div>
+
+        <div class="header-group">
+          <!-- History Button with clock spin -->
+          <button id="historyToggleBtn" class="icon-btn interactive-icon-btn" title="Calculation History" aria-label="Calculation History">
+            <span id="historyIconSpan" class="icon-content">🕒</span>
+            <span class="badge-dot" id="historyBadge"></span>
+            <span class="icon-click-wave"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Calculator Display Screen -->
+      <section class="display-container" aria-label="Calculator Screen">
+        <div class="display-top-bar">
+          <div class="history-expression" id="historyDisplay" aria-live="polite"></div>
+          <button id="copyBtn" class="copy-action-btn interactive-icon-btn" title="Copy result to clipboard" aria-label="Copy result">
+            <span class="copy-icon" id="copyIconSpan">📋</span>
+            <span class="copy-tooltip" id="copyTooltip">Copied! ✨</span>
+            <span class="icon-click-wave"></span>
+          </button>
+        </div>
+        <div class="display-main-bar">
+          <!-- Current value with bottom-up rise animation class -->
+          <div class="current-value slide-up-active" id="currentDisplay" aria-live="assertive">0</div>
+        </div>
+      </section>
+
+      <!-- Keypad -->
+      <section class="keypad-grid" aria-label="Keypad">
+        <!-- Row 1: Quick modifiers & operations -->
+        <button class="key-btn key-utility" data-action="all-clear" data-key="Escape" title="Clear All (Esc)">AC</button>
+        <button class="key-btn key-utility" data-action="backspace" data-key="Backspace" title="Backspace (Backspace)">⌫</button>
+        <button class="key-btn key-utility" data-action="percent" data-key="%" title="Percentage (%)">%</button>
+        <button class="key-btn key-operator" data-action="operator" data-val="/" data-key="/" title="Divide (/)">÷</button>
+
+        <!-- Row 2: Scientific & Powers -->
+        <button class="key-btn key-function" data-action="sqrt" title="Square Root (√)">√</button>
+        <button class="key-btn key-function" data-action="square" title="Square (x²)">x²</button>
+        <button class="key-btn key-function" data-action="negate" title="Toggle Sign (±)">±</button>
+        <button class="key-btn key-operator" data-action="operator" data-val="*" data-key="*" title="Multiply (*)">×</button>
+
+        <!-- Row 3: Numbers 7, 8, 9 & Subtraction -->
+        <button class="key-btn key-number" data-action="number" data-val="7" data-key="7">7</button>
+        <button class="key-btn key-number" data-action="number" data-val="8" data-key="8">8</button>
+        <button class="key-btn key-number" data-action="number" data-val="9" data-key="9">9</button>
+        <button class="key-btn key-operator" data-action="operator" data-val="-" data-key="-" title="Subtract (-)">−</button>
+
+        <!-- Row 4: Numbers 4, 5, 6 & Addition -->
+        <button class="key-btn key-number" data-action="number" data-val="4" data-key="4">4</button>
+        <button class="key-btn key-number" data-action="number" data-val="5" data-key="5">5</button>
+        <button class="key-btn key-number" data-action="number" data-val="6" data-key="6">6</button>
+        <button class="key-btn key-operator" data-action="operator" data-val="+" data-key="+" title="Add (+)">+</button>
+
+        <!-- Row 5: Numbers 1, 2, 3 & Equals spanning 2 rows -->
+        <button class="key-btn key-number" data-action="number" data-val="1" data-key="1">1</button>
+        <button class="key-btn key-number" data-action="number" data-val="2" data-key="2">2</button>
+        <button class="key-btn key-number" data-action="number" data-val="3" data-key="3">3</button>
+        <button class="key-btn key-equals" data-action="calculate" data-key="Enter" title="Calculate (Enter)">=</button>
+
+        <!-- Row 6: Number 0 (double span) & Decimal -->
+        <button class="key-btn key-number key-zero" data-action="number" data-val="0" data-key="0">0</button>
+        <button class="key-btn key-number" data-action="decimal" data-key="." title="Decimal point (.)">.</button>
+      </section>
+
+      <!-- Footer keyboard shortcut badge -->
+      <footer class="calc-footer">
+        <span class="footer-tip">⌨️ Full Keyboard • Click for Visual Magic ✨</span>
+      </footer>
+
+      <!-- THEME SELECTOR MODAL / SHEET -->
+      <div class="overlay-panel" id="themeModal">
+        <div class="overlay-header">
+          <div class="overlay-title">
+            <span class="header-icon-anim">🎨</span>
+            <h3>Choose Aesthetic</h3>
+          </div>
+          <button class="close-panel-btn interactive-icon-btn" id="closeThemeBtn" aria-label="Close themes">✕</button>
+        </div>
+
+        <div class="theme-grid" id="themeGrid">
+          <!-- Theme Option: Midnight Neon -->
+          <div class="theme-card active" data-theme="theme-midnight">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #0f172a;"></span>
+              <span class="swatch-dot" style="background: #6366f1;"></span>
+              <span class="swatch-dot" style="background: #06b6d4;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Midnight Cyber</div>
+              <div class="theme-desc">Electric Indigo & Cyan Glow</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Sakura Pastel -->
+          <div class="theme-card" data-theme="theme-sakura">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #fff1f2;"></span>
+              <span class="swatch-dot" style="background: #fb7185;"></span>
+              <span class="swatch-dot" style="background: #f43f5e;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Sakura Blossom</div>
+              <div class="theme-desc">Soft Rosé & Blush Pastel</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Matcha Forest -->
+          <div class="theme-card" data-theme="theme-matcha">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #0f2017;"></span>
+              <span class="swatch-dot" style="background: #10b981;"></span>
+              <span class="swatch-dot" style="background: #34d399;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Matcha Zen</div>
+              <div class="theme-desc">Earthy Forest & Mint Jade</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Warm Mocha -->
+          <div class="theme-card" data-theme="theme-mocha">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #1c140e;"></span>
+              <span class="swatch-dot" style="background: #d97706;"></span>
+              <span class="swatch-dot" style="background: #fbbf24;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Warm Mocha</div>
+              <div class="theme-desc">Rich Espresso & Caramel</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Frost Clean Light -->
+          <div class="theme-card" data-theme="theme-frost">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #f8fafc;"></span>
+              <span class="swatch-dot" style="background: #2563eb;"></span>
+              <span class="swatch-dot" style="background: #38bdf8;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Frost Minimal</div>
+              <div class="theme-desc">Crisp Snow & Cerulean Sky</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Obsidian OLED -->
+          <div class="theme-card" data-theme="theme-oled">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #000000;"></span>
+              <span class="swatch-dot" style="background: #38bdf8;"></span>
+              <span class="swatch-dot" style="background: #ffffff;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Obsidian OLED</div>
+              <div class="theme-desc">Pure Void Black & Silver</div>
+            </div>
+          </div>
+
+          <!-- Theme Option: Sunset Dream -->
+          <div class="theme-card" data-theme="theme-sunset">
+            <div class="theme-swatch-row">
+              <span class="swatch-dot" style="background: #180d2b;"></span>
+              <span class="swatch-dot" style="background: #ec4899;"></span>
+              <span class="swatch-dot" style="background: #f97316;"></span>
+            </div>
+            <div class="theme-info">
+              <div class="theme-title">Sunset Horizon</div>
+              <div class="theme-desc">Neon Violet & Golden Amber</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY DRAWER OVERLAY -->
+      <div class="overlay-panel" id="historyModal">
+        <div class="overlay-header">
+          <div class="overlay-title">
+            <span class="header-icon-anim">🕒</span>
+            <h3>Calculation History</h3>
+          </div>
+          <div class="header-actions">
+            <button class="pill-action-btn danger interactive-icon-btn" id="clearHistoryBtn" title="Clear all calculations">Clear</button>
+            <button class="close-panel-btn interactive-icon-btn" id="closeHistoryBtn" aria-label="Close history">✕</button>
+          </div>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="empty-state">
+            <span class="empty-icon">📝</span>
+            <p>No calculations yet</p>
+            <span class="empty-sub">Calculations will appear here</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
